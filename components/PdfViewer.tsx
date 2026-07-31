@@ -7,8 +7,12 @@ import Loading from "@/components/Loading";
 import ErrorState from "@/components/Error";
 import type { PdfDocumentInfo, PdfStatus } from "@/types/pdf";
 
-// Served from /public — Next.js webpack breaks import.meta.url worker bundles on Vercel
-pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+function configureWorker() {
+  // Absolute CDN URL — avoids Next.js webpack transforming the worker on Vercel
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+}
+
+configureWorker();
 
 interface PdfViewerProps {
   pdfUrl: string;
@@ -36,7 +40,57 @@ function usePageWidth() {
 export default function PdfViewer({ pdfUrl, onStatusChange }: PdfViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [loadError, setLoadError] = useState(false);
+  const [fileData, setFileData] = useState<Uint8Array | string | null>(null);
   const width = usePageWidth();
+
+  useEffect(() => {
+    configureWorker();
+  }, []);
+
+  // Fetch PDF ourselves so we can fall back to same-origin proxy if CORS blocks
+  useEffect(() => {
+    let cancelled = false;
+    setFileData(null);
+    setLoadError(false);
+    setNumPages(0);
+    onStatusChange("loading");
+
+    async function load() {
+      const tryUrls = [pdfUrl, `/api/pdf?url=${encodeURIComponent(pdfUrl)}`];
+
+      for (const url of tryUrls) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) {
+            continue;
+          }
+          const buffer = await res.arrayBuffer();
+          const bytes = new Uint8Array(buffer);
+          // Basic PDF magic check
+          const head = String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]);
+          if (head !== "%PDF") {
+            continue;
+          }
+          if (!cancelled) {
+            setFileData(bytes);
+          }
+          return;
+        } catch {
+          // try next
+        }
+      }
+
+      if (!cancelled) {
+        setLoadError(true);
+        onStatusChange("error");
+      }
+    }
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [pdfUrl, onStatusChange]);
 
   const onLoadSuccess = useCallback(
     ({ numPages: pages }: PdfDocumentInfo) => {
@@ -53,12 +107,6 @@ export default function PdfViewer({ pdfUrl, onStatusChange }: PdfViewerProps) {
     onStatusChange("error");
   }, [onStatusChange]);
 
-  useEffect(() => {
-    setNumPages(0);
-    setLoadError(false);
-    onStatusChange("loading");
-  }, [pdfUrl, onStatusChange]);
-
   const pages = useMemo(() => {
     if (!numPages) {
       return null;
@@ -73,10 +121,14 @@ export default function PdfViewer({ pdfUrl, onStatusChange }: PdfViewerProps) {
     return <ErrorState message="Unable to load PDF" />;
   }
 
+  if (!fileData) {
+    return <Loading />;
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#F5F5F5]">
       <Document
-        file={pdfUrl}
+        file={{ data: fileData }}
         onLoadSuccess={onLoadSuccess}
         onLoadError={onLoadError}
         loading={<Loading />}
