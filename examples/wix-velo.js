@@ -1,40 +1,31 @@
 /**
- * Wix Velo — send a dynamic PDF URL into the viewer iframe.
+ * Wix Page Code (Velo)
  *
  * Setup:
- * 1. Add an HTML Component on the page, set its ID to htmlPdf
- * 2. Paste the HTML from examples/wix-embed.html into that component
- *    (viewer: https://pdf-viewer-rho.vercel.app/viewer)
- * 3. Paste this code into the page's Velo code
+ * 1. Add an HTML Component, set ID to htmlPdf
+ * 2. Paste examples/wix-embed.html into that component
+ * 3. Paste this into the page's Velo code
+ *
+ * Flow: Wix → HTML Component → Next.js iframe → displays PDF
  */
 
 // @ts-nocheck — paste into Wix Velo editor
 
 $w.onReady(function () {
-  const html = $w("#htmlPdf");
+  const pdfUrl =
+    "https://d717d48e-b445-452c-9b92-b21ab8056a14.usrfiles.com/ugd/e90510_0f81439048824f27a888593683d53751.pdf";
 
-  function sendPdf(pdfUrl) {
-    if (!pdfUrl) return;
-    html.postMessage({ type: "SET_PDF", pdf: pdfUrl });
-  }
-
-  // When the viewer is ready, send (or re-send) the current PDF
-  html.onMessage((event) => {
-    if (event.data?.type === "PDF_VIEWER_READY") {
-      // Replace with your dynamic source (CMS, dataset, query, etc.)
-      const pdfUrl = $w("#dynamicDataset").getCurrentItem()?.pdfUrl;
-      // Or a fixed test URL:
-      // const pdfUrl = "https://your-cdn.com/file.pdf";
-      sendPdf(pdfUrl);
-    }
-  });
-
-  // Example: send whenever your data is ready
-  // sendPdf("https://your-cdn.com/file.pdf");
+  // Small delay so the HTML Component iframe can finish loading
+  setTimeout(() => {
+    $w("#htmlPdf").postMessage({
+      type: "SET_PDF",
+      pdf: pdfUrl,
+    });
+  }, 800);
 });
 
 /**
- * Call this anytime the PDF URL changes (button click, dataset change, etc.):
+ * Update the PDF anytime:
  *
  *   $w("#htmlPdf").postMessage({
  *     type: "SET_PDF",

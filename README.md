@@ -1,119 +1,104 @@
 # Minimal PDF Viewer (Next.js + React)
 
-Embeddable PDF reader for Wix iframes. Display only — no toolbar, download, zoom, or editing.
+Embeddable PDF reader for Wix. Display only — no toolbar or editing.
 
-## Stack
+**Live:** https://pdf-viewer-rho.vercel.app/viewer
 
-- Next.js 15 (App Router)
-- React 19
-- TypeScript
-- Tailwind CSS 4
-- react-pdf `10.1.0` + pdfjs-dist `5.3.93`
+## Message flow
 
-## Quick start
+```
+Wix Page (Velo)
+    │  postMessage({ type: "SET_PDF", pdf })
+    ▼
+HTML Component
+    │  forwards to iframe
+    ▼
+Next.js Viewer
+    │
+    ▼
+Displays PDF
+```
+
+---
+
+## 1. Wix Page Code (Velo)
+
+```javascript
+$w.onReady(function () {
+  const pdfUrl = "https://your-cdn.com/file.pdf";
+
+  setTimeout(() => {
+    $w("#htmlPdf").postMessage({
+      type: "SET_PDF",
+      pdf: pdfUrl,
+    });
+  }, 800);
+});
+```
+
+Replace `#htmlPdf` if your HTML Component ID is different.
+
+---
+
+## 2. HTML Component Code
+
+Paste into the Wix HTML Component:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    iframe { width: 100%; height: 100vh; border: none; }
+  </style>
+</head>
+<body>
+  <iframe
+    id="pdfViewer"
+    src="https://pdf-viewer-rho.vercel.app/viewer"
+  ></iframe>
+  <script>
+    const iframe = document.getElementById("pdfViewer");
+    window.onmessage = function (event) {
+      iframe.contentWindow.postMessage(event.data, "*");
+    };
+  </script>
+</body>
+</html>
+```
+
+---
+
+## 3. Next.js (already implemented)
+
+The viewer listens for:
+
+```javascript
+{ type: "SET_PDF", pdf: "https://example.com/file.pdf" }
+```
+
+Changing `pdfUrl` in Velo immediately updates the displayed PDF.
+
+Optional query-param fallback:
+
+```
+https://pdf-viewer-rho.vercel.app/viewer?pdf=https://example.com/file.pdf
+```
+
+---
+
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-```
-http://localhost:3000/viewer?pdf=https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf
-```
-
----
-
-## Wix embed (dynamic PDF via postMessage)
-
-### 1. HTML Component
-
-Add an **HTML Component** (id: `htmlPdf`) and paste:
-
-```html
-<iframe
-  id="pdf-viewer"
-  src="https://pdf-viewer-rho.vercel.app/viewer"
-  style="width:100%;height:80vh;border:0;"
-  title="PDF Viewer"
-></iframe>
-<script>
-  const iframe = document.getElementById("pdf-viewer");
-
-  window.onmessage = (event) => {
-    const data = event.data;
-    if (!data || !iframe?.contentWindow) return;
-    if (data.type === "PDF_VIEWER_READY") {
-      window.parent.postMessage(data, "*");
-      return;
-    }
-    iframe.contentWindow.postMessage(data, "*");
-  };
-
-  window.addEventListener("message", (event) => {
-    if (event.data?.type === "PDF_VIEWER_READY" && event.data?.source === "pdf-viewer") {
-      window.parent.postMessage(event.data, "*");
-    }
-  });
-</script>
-```
-
-Replace `YOUR-APP.vercel.app` with your Vercel URL. No PDF in the `src`.
-
-### 2. Velo — send the dynamic PDF URL
-
-```javascript
-$w.onReady(function () {
-  const html = $w("#htmlPdf");
-
-  function sendPdf(pdfUrl) {
-    if (!pdfUrl) return;
-    html.postMessage({ type: "SET_PDF", pdf: pdfUrl });
-  }
-
-  html.onMessage((event) => {
-    if (event.data?.type === "PDF_VIEWER_READY") {
-      sendPdf(yourDynamicPdfUrl); // ← your CMS / dataset / variable
-    }
-  });
-
-  // Also send when your data is ready:
-  // sendPdf(yourDynamicPdfUrl);
-});
-```
-
-Whenever the PDF changes:
-
-```javascript
-$w("#htmlPdf").postMessage({
-  type: "SET_PDF",
-  pdf: "https://your-cdn.com/new-file.pdf"
-});
-```
-
-The viewer replaces the document immediately.
-
----
-
-## UX states
-
-| State | UI |
-| --- | --- |
-| Loading | Centered spinner |
-| Missing URL | `No PDF selected` |
-| Load failure | `Unable to load PDF` |
-| Ready | Pages on `#F5F5F5` |
-
 ## CORS
 
-The PDF host must allow browser fetches (`Access-Control-Allow-Origin`).
-
-## Deploy
-
-```bash
-npx vercel
-```
-
-`Content-Security-Policy: frame-ancestors *` is set so Wix can iframe the app.
+The PDF host must allow browser fetches (`Access-Control-Allow-Origin`). Wix Media (`usrfiles.com`) usually allows this.
 
 ## License
 

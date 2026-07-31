@@ -2,18 +2,14 @@ export type PdfSource = string | null;
 
 export type PdfStatus = "idle" | "loading" | "ready" | "error" | "empty";
 
-/** Incoming message shapes accepted from a Wix parent (or any embedder). */
+/** Wix → HTML Component → iframe message */
 export interface PdfMessage {
   type?: string;
   pdf?: string;
   url?: string;
   src?: string;
-}
-
-/** Outgoing handshake so the parent knows the iframe is ready to receive a PDF URL. */
-export interface PdfViewerReadyMessage {
-  type: "PDF_VIEWER_READY";
-  source: "pdf-viewer";
+  data?: unknown;
+  source?: string;
 }
 
 export interface UsePdfResult {
