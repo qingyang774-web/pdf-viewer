@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePdf } from "@/hooks/usePdf";
 import Loading from "@/components/Loading";
 import ErrorState from "@/components/Error";
@@ -13,26 +13,27 @@ const PdfViewer = dynamic(() => import("@/components/PdfViewer"), {
 });
 
 export default function ViewerClient() {
-  const { pdfUrl, status, setStatus, errorMessage } = usePdf();
+  const { pdfUrl, status, errorMessage } = usePdf();
+  const [viewerStatus, setViewerStatus] = useState<PdfStatus>("loading");
 
-  const onStatusChange = useCallback(
-    (next: PdfStatus) => {
-      setStatus(next);
-    },
-    [setStatus]
-  );
+  useEffect(() => {
+    setViewerStatus("loading");
+  }, [pdfUrl]);
 
-  if (status === "error" && !pdfUrl) {
+  const onStatusChange = useCallback((next: PdfStatus) => {
+    setViewerStatus(next);
+  }, []);
+
+  if (status === "empty") {
+    return <ErrorState message="No PDF specified" />;
+  }
+
+  if (status === "error" || !pdfUrl) {
     return <ErrorState message={errorMessage ?? "Unable to load PDF"} />;
   }
 
-  if (status === "empty") {
-    return <ErrorState message="No PDF selected" />;
-  }
-
-  // Waiting for query param hydration or Wix postMessage
-  if (!pdfUrl) {
-    return <Loading />;
+  if (viewerStatus === "error") {
+    return <ErrorState message="Unable to load PDF" />;
   }
 
   return <PdfViewer key={pdfUrl} pdfUrl={pdfUrl} onStatusChange={onStatusChange} />;

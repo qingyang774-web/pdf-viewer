@@ -1,34 +1,19 @@
 /**
- * Wix Page Code (Velo)
+ * Wix — embed via query parameter (no postMessage).
  *
- * Setup:
- * 1. Add an HTML Component, set ID to htmlPdf
- * 2. Paste examples/wix-embed.html into that component
- * 3. Paste this into the page's Velo code
- *
- * Flow: Wix → HTML Component → Next.js iframe → displays PDF
+ * Build the iframe src with an encoded PDF URL and set it on the HTML Component.
  */
 
 // @ts-nocheck — paste into Wix Velo editor
 
 $w.onReady(function () {
+  const viewerBase = "https://pdf-viewer-rho.vercel.app/viewer";
   const pdfUrl =
     "https://d717d48e-b445-452c-9b92-b21ab8056a14.usrfiles.com/ugd/e90510_0f81439048824f27a888593683d53751.pdf";
 
-  // Small delay so the HTML Component iframe can finish loading
-  setTimeout(() => {
-    $w("#htmlPdf").postMessage({
-      type: "SET_PDF",
-      pdf: pdfUrl,
-    });
-  }, 800);
-});
+  const src = `${viewerBase}?pdf=${encodeURIComponent(pdfUrl)}`;
 
-/**
- * Update the PDF anytime:
- *
- *   $w("#htmlPdf").postMessage({
- *     type: "SET_PDF",
- *     pdf: "https://your-cdn.com/new-file.pdf"
- *   });
- */
+  // Put this URL in your HTML Component iframe src attribute:
+  // <iframe src="..." style="width:100%;height:100vh;border:none;"></iframe>
+  console.log("PDF Viewer URL:", src);
+});

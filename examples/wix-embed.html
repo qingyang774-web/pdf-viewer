@@ -20,20 +20,14 @@
   </head>
 
   <body>
+    <!--
+      Set the PDF URL in the iframe src query param.
+      Encode the PDF URL with encodeURIComponent.
+    -->
     <iframe
       id="pdfViewer"
-      src="https://pdf-viewer-rho.vercel.app/viewer"
+      src="https://pdf-viewer-rho.vercel.app/viewer?pdf=https%3A%2F%2Fmozilla.github.io%2Fpdf.js%2Fweb%2Fcompressed.tracemonkey-pldi-09.pdf"
       title="PDF Viewer"
     ></iframe>
-
-    <script>
-      const iframe = document.getElementById("pdfViewer");
-
-      // Forward every message from Wix Velo → Next.js viewer iframe
-      window.onmessage = function (event) {
-        if (!iframe?.contentWindow) return;
-        iframe.contentWindow.postMessage(event.data, "*");
-      };
-    </script>
   </body>
 </html>
