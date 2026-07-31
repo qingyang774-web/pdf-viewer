@@ -4,7 +4,7 @@
  * Setup:
  * 1. Add an HTML Component on the page, set its ID to htmlPdf
  * 2. Paste the HTML from examples/wix-embed.html into that component
- *    (replace YOUR-APP.vercel.app with your real Vercel URL)
+ *    (viewer: https://pdf-viewer-rho.vercel.app/viewer)
  * 3. Paste this code into the page's Velo code
  */
 

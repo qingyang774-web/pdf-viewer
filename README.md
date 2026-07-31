@@ -32,7 +32,7 @@ Add an **HTML Component** (id: `htmlPdf`) and paste:
 ```html
 <iframe
   id="pdf-viewer"
-  src="https://YOUR-APP.vercel.app/viewer"
+  src="https://pdf-viewer-rho.vercel.app/viewer"
   style="width:100%;height:80vh;border:0;"
   title="PDF Viewer"
 ></iframe>

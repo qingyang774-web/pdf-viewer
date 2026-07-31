@@ -7,11 +7,8 @@ import Loading from "@/components/Loading";
 import ErrorState from "@/components/Error";
 import type { PdfDocumentInfo, PdfStatus } from "@/types/pdf";
 
-// Recommended react-pdf worker configuration (same module as Document/Page)
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
+// Served from /public — Next.js webpack breaks import.meta.url worker bundles on Vercel
+pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 interface PdfViewerProps {
   pdfUrl: string;

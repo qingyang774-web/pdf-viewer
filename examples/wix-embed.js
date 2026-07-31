@@ -8,4 +8,4 @@
  *   $w("#htmlPdf").postMessage({ type: "SET_PDF", pdf: dynamicPdfUrl });
  */
 
-const VIEWER_URL = "https://YOUR-APP.vercel.app/viewer";
+const VIEWER_URL = "https://pdf-viewer-rho.vercel.app/viewer";
