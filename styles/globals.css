@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f5f5f5;
+  --paper: #ffffff;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: #262626;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Smooth scrolling for multi-page documents */
+html {
+  scroll-behavior: smooth;
+}
+
+/* react-pdf canvas should fill the paper container */
+.react-pdf__Page {
+  display: flex !important;
+  justify-content: center;
+}
+
+.react-pdf__Page__canvas {
+  max-width: 100%;
+  height: auto !important;
+  display: block;
+}
+
+/* Hide any accidental selection chrome from pdf.js */
+.react-pdf__Document {
+  width: 100%;
+}
